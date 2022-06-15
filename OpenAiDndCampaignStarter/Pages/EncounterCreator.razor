@@ -1,0 +1,56 @@
+﻿@page "/encounter-creator"
+
+<PageTitle>Encounter Creator</PageTitle>
+
+@using OpenAiDndCampaignStarter.Data
+@using System.Text
+@using System.Net.Http.Headers
+@inject WeatherForecastService ForecastService
+
+<h1>Encounter Creator</h1>
+
+<p>Encounter description:</p>
+
+@if (_response == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <p>Encounter Area Description<br>
+    @_response</p>
+}
+
+@code {
+    private HttpClient _httpClient;
+    private string? _response;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var prompt = "Topic: Description\nA long description of an area in the middle of a journey";
+        
+        //Create the request sender object
+        _httpClient ??= new HttpClient();
+
+        //Set the headers
+        _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("MessageService/3.1");
+    }
+    
+    public async Task<string> PostHttpMessage(string url, string jsonMessage)
+    {
+        _httpClient.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", "");
+        
+        // Initialize the request content and Send the POST
+        var response = await _httpClient.PostAsync(url, new StringContent(jsonMessage, Encoding.UTF8, "application/json"));
+
+        //Check for error status
+        response.EnsureSuccessStatusCode();
+
+        //Get the response content
+        return await response.Content.ReadAsStringAsync();
+    }    
+
+}
