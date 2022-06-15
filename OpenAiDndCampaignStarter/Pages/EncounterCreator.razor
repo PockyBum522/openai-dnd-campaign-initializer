@@ -18,18 +18,28 @@
 }
 else
 {
-    <p>Encounter Area Description:<br>
-        @_encounterAreaDescription</p>
+    <br/><br/><br/>
     
-    <p>Visible Monsters:<br>
+    <p>
+        <h3>Encounter Area Description:</h3>
+        @_encounterAreaDescription
+    </p>
+    
+    <p>
+        <h3>Visible Monsters:</h3>
         @_numberOfMonsters?.FirstCharToUpper() @_monsterType:
-        @_monstersDescription</p>
+        @_monstersDescription
+    </p>
     
-    <p>Their Leader:<br>
-        @_monstersLeaderDescription</p>
+    <p>
+        <h3>Their Leader:</h3>
+        @_monstersLeaderDescription
+    </p>
         
-    <p>Potential Unexpected Problems:<br>
-        @_enounterProblem</p>
+    <p>
+        <h3>Potential Unexpected Problems:</h3>
+        @_enounterProblem
+    </p>
 }
 
 @code {
@@ -47,9 +57,17 @@ else
         _numberOfMonsters = numberOfMonsters.ToWords();
 
         var randomMonster = MonsterTableHelpers.GetRandom5eMonster();
-        
-        _monsterType = randomMonster.CreatureName;
-        
+
+        // Pluralize if there are more than one monsters
+        if (numberOfMonsters > 1)
+        {
+            _monsterType = randomMonster.CreatureName.Pluralize();
+        }
+        else
+        {
+            _monsterType = randomMonster.CreatureName;
+        }
+
         var encounterAreaTask = OpenAiRequestor.GetTextCompletionAsync(
             "Topic: Description. Please give me a description of an area in the middle of a journey.");
 
@@ -60,7 +78,7 @@ else
             $"Topic: Description. Please give me a description of the leader of a group of {_monsterType} monsters.");
 
         var encounterProblemTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Description. Please give me a random reason why a battle would suddenly get harder.");
+            $"Topic: Battle. Please give me a random reason why a medieval battle would suddenly get harder.");
 
         _enounterProblem = await encounterProblemTask;
 
