@@ -2,14 +2,11 @@
 
 <PageTitle>Encounter Creator</PageTitle>
 
-@using System.Text
-@using System.Net.Http.Headers
-@using OpenAiDndCampaignStarter.Data.Models
-@using Newtonsoft.Json
+@using OpenAiDndCampaignStarter.Data.Logic
 
 <h1>Encounter Creator</h1>
 
-@if (_finalResponse == null)
+@if (_response == null)
 {
     <p>
         <em>Loading...</em>
@@ -18,46 +15,18 @@
 else
 {
     <p>Encounter Area Description:<br>
-    @_finalResponse</p>
+    @_response</p>
 }
 
 @code {
-    private HttpClient? _httpClient;
-    private string? _jsonResponse;
-
-    private string? _finalResponse;
+    private string? _response;
 
     protected override async Task OnInitializedAsync()
     {
-        var requestModel = new OpenAiRequest("Topic: Description. A description of a landscape in the middle of a journey");
+        var requestor = new OpenAiRequestor();
 
-        var jsonRequest = JsonConvert.SerializeObject(requestModel);
-        
-        //Create the request sender object
-        _httpClient ??= new HttpClient();
-
-        _jsonResponse = await PostHttpMessage("https://api.openai.com/v1/completions", jsonRequest);
-
-        var responseObject = JsonConvert.DeserializeObject<OpenAiResponse>(_jsonResponse);
-
-        _finalResponse = responseObject?.choices[0].text;
+        _response = 
+            await requestor.GetTextCompletionAsync(
+    "Topic: Description. Please tell me a story about a bugbear monster.");
     }
-
-    private async Task<string> PostHttpMessage(string url, string jsonMessage)
-    {
-        _httpClient.DefaultRequestHeaders.Authorization = 
-            new AuthenticationHeaderValue("Bearer", Secrets.SECRET_API_KEY);
-        
-        _httpClient.Timeout = TimeSpan.FromSeconds(30);
-        
-        // Initialize the request content and Send the POST
-        var response = await _httpClient.PostAsync(url, new StringContent(jsonMessage, Encoding.UTF8, "application/json"));
-
-        //Check for error status
-        response.EnsureSuccessStatusCode();
-
-        //Get the response content
-        return await response.Content.ReadAsStringAsync();
-    }    
-
 }
