@@ -8,7 +8,7 @@
 
 @inject IOpenAiRequestor OpenAiRequestor;
 
-<h1>Encounter Creator</h1>
+<h1>5e Encounter Creator</h1>
 
 @if (_encounterAreaDescription == null)
 {
@@ -18,7 +18,7 @@
 }
 else
 {
-    <br/><br/><br/>
+    <br/>
     
     <p>
         <h3>Encounter Area Description:</h3>
@@ -27,7 +27,7 @@ else
     
     <p>
         <h3>Visible Monsters:</h3>
-        @_numberOfMonsters?.FirstCharToUpper() @_monsterType:
+        (@_numberOfMonsters?.FirstCharToUpper() @_monsterType)<br/>
         @_monstersDescription
     </p>
     
@@ -40,6 +40,11 @@ else
         <h3>Potential Unexpected Problems:</h3>
         @_enounterProblem
     </p>
+    
+    <p>
+        <h3>Source Material:</h3>
+        @_alwaysPluralMonsterType can be found on page @_monsterPage of @_sourceMaterial
+    </p>
 }
 
 @code {
@@ -49,6 +54,9 @@ else
     private string? _monstersDescription;
     private string? _monstersLeaderDescription;
     private string? _enounterProblem;
+    private string? _alwaysPluralMonsterType;
+    private string? _monsterPage;
+    private string? _sourceMaterial;
 
     protected override async Task OnInitializedAsync()
     {
@@ -67,6 +75,10 @@ else
         {
             _monsterType = randomMonster.CreatureName;
         }
+        
+        _alwaysPluralMonsterType = randomMonster.CreatureName.Pluralize();
+        _monsterPage = randomMonster.SourcePageNumber.ToString();
+        _sourceMaterial = randomMonster.SourceMaterial;
 
         var encounterAreaTask = OpenAiRequestor.GetTextCompletionAsync(
             "Topic: Description. Please give me a description of an area in the middle of a journey.");
@@ -78,7 +90,7 @@ else
             $"Topic: Description. Please give me a description of the leader of a group of {_monsterType} monsters.");
 
         var encounterProblemTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Battle. Please give me a random reason why a medieval battle would suddenly get harder.");
+            $"Topic: Medieval battle. Please give me a reason why a battle against {_alwaysPluralMonsterType} might unexpectedly get more difficult.");
 
         _enounterProblem = await encounterProblemTask;
 
