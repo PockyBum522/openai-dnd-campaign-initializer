@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.EntityFrameworkCore;
 using OpenAiDndCampaignStarter.Areas.Identity;
 using OpenAiDndCampaignStarter.Data;
+using OpenAiDndCampaignStarter.Data.Logic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services
     .AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IOpenAiRequestor, OpenAiRequestor>();
 
 var app = builder.Build();
 

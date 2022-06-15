@@ -5,9 +5,14 @@ using OpenAiDndCampaignStarter.Data.Models;
 
 namespace OpenAiDndCampaignStarter.Data.Logic;
 
-public class OpenAiRequestor
+public class OpenAiRequestor : IOpenAiRequestor
 {
-    private static HttpClient? _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    public OpenAiRequestor(IHttpClientFactory httpClientFactory)
+    {
+        _httpClientFactory = httpClientFactory;
+    }
 
     public async Task<string> GetTextCompletionAsync(string promptString)
     {
@@ -24,17 +29,17 @@ public class OpenAiRequestor
 
     private async Task<string> PostHttpMessage(string url, string jsonMessage)
     {
-        _httpClient ??= new HttpClient();
+        var httpClient = _httpClientFactory.CreateClient();
         
-        _httpClient.DefaultRequestHeaders.Authorization = 
+        httpClient.DefaultRequestHeaders.Authorization = 
             new AuthenticationHeaderValue("Bearer", Secrets.SECRET_API_KEY);
             
-        _httpClient.Timeout = TimeSpan.FromSeconds(30);
+        httpClient.Timeout = TimeSpan.FromSeconds(30);
 
         var contentString = new StringContent(jsonMessage, Encoding.UTF8, "application/json");
         
         // Initialize the request content and Send the POST
-        var response = await _httpClient.PostAsync(url, contentString);
+        var response = await httpClient.PostAsync(url, contentString);
 
         //Check for error status
         response.EnsureSuccessStatusCode();
