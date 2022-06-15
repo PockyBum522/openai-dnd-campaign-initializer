@@ -18,43 +18,53 @@
 }
 else
 {
-    <br/>
-    
-    <p>
+    <br/><p>
         <h3>Encounter Area Description:</h3>
         @_encounterAreaDescription
     </p>
     
-    <p>
-        <h3>Visible Monsters:</h3>
-        (@_numberOfMonsters?.FirstCharToUpper() @_monsterType)<br/>
+    @if (_monsterTypePlural == null)
+    {
+        <h3>Visible Monster:</h3>
+        <p>(@_numberOfMonsters?.FirstCharToUpper() @_monsterType)</p>
         @_monstersDescription
-    </p>
+    }
+    else
+    {
+        <h3>Visible Monsters:</h3>
+        <p>(@_numberOfMonsters?.FirstCharToUpper() @_monsterTypePlural)<br>
+        @_monstersDescription</p>
+
+        <p>
+            <h3>Their Leader:</h3>
+            @_monstersLeaderDescription
+        </p>
+    }
     
-    <p>
-        <h3>Their Leader:</h3>
-        @_monstersLeaderDescription
-    </p>
-        
     <p>
         <h3>Potential Unexpected Problems:</h3>
-        @_enounterProblem
+        @_encounterProblem
     </p>
     
-    <p>
-        <h3>Source Material:</h3>
-        @_alwaysPluralMonsterType can be found on page @_monsterPage of @_sourceMaterial
-    </p>
+    <h3>Source Material:</h3>
+    @if (_monsterTypePlural == null)
+    {
+        <p>@_monsterType can be found on page @_monsterPage of @_sourceMaterial</p>
+    }
+    else
+    {
+        <p>@_monsterTypePlural can be found on page @_monsterPage of @_sourceMaterial</p>
+    }
 }
 
 @code {
     private string? _encounterAreaDescription;
     private string? _numberOfMonsters;
     private string? _monsterType;
+    private string? _monsterTypePlural;
     private string? _monstersDescription;
     private string? _monstersLeaderDescription;
-    private string? _enounterProblem;
-    private string? _alwaysPluralMonsterType;
+    private string? _encounterProblem;
     private string? _monsterPage;
     private string? _sourceMaterial;
 
@@ -66,17 +76,16 @@ else
 
         var randomMonster = MonsterTableHelpers.GetRandom5eMonster();
 
-        // Pluralize if there are more than one monsters
+        _monsterType = randomMonster.CreatureName;
+
+        Task<string>? monsterTypePluralTask = null;
+        
         if (numberOfMonsters > 1)
         {
-            _monsterType = randomMonster.CreatureName.Pluralize();
-        }
-        else
-        {
-            _monsterType = randomMonster.CreatureName;
+            monsterTypePluralTask = OpenAiRequestor.GetTextCompletionAsync(
+                $"What is the plural form of \"{_monsterType}\"");
         }
         
-        _alwaysPluralMonsterType = randomMonster.CreatureName.Pluralize();
         _monsterPage = randomMonster.SourcePageNumber.ToString();
         _sourceMaterial = randomMonster.SourceMaterial;
 
@@ -84,20 +93,26 @@ else
             "Topic: Description. Please give me a description of an area in the middle of a journey.");
 
         var encounterMonstersDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Description. Please give me a description of a group of {_numberOfMonsters} {_monsterType} monsters.");
+            $"Topic: Description. Please give me a description of {_numberOfMonsters} {_monsterType} monsters.");
         
         var encounterMonstersLeaderDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Description. Please give me a description of the leader of a group of {_monsterType} monsters.");
+            $"Topic: Description. Please give me a description of the {_monsterType} leader.");
 
         var encounterProblemTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Medieval battle. Please give me a reason why a battle against {_alwaysPluralMonsterType} might unexpectedly get more difficult.");
+            $"Topic: Medieval battle. Please give me a reason why a battle against {_monsterType} monsters might unexpectedly get more difficult.");
 
-        _enounterProblem = await encounterProblemTask;
+        _encounterProblem = await encounterProblemTask;
 
         _monstersLeaderDescription = await encounterMonstersLeaderDescriptionTask;
         
         _monstersDescription = await encounterMonstersDescriptionTask;
 
         _encounterAreaDescription = await encounterAreaTask;
+        
+        if (numberOfMonsters > 1)
+        {
+            if (monsterTypePluralTask is not null)
+                _monsterTypePlural = await monsterTypePluralTask;
+        }
     }
 }
