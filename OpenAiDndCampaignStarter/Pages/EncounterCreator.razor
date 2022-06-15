@@ -4,6 +4,7 @@
 
 @using OpenAiDndCampaignStarter.Data.Logic
 @using System.Security.Cryptography
+@using Humanizer
 
 @inject IOpenAiRequestor OpenAiRequestor;
 
@@ -21,7 +22,7 @@ else
         @_encounterAreaDescription</p>
     
     <p>Visible Monsters:<br>
-        @_numberOfMonsters @_monsterType:
+        @_numberOfMonsters?.FirstCharToUpper() @_monsterType:
         @_monstersDescription</p>
     
     <p>Their Leader:<br>
@@ -43,7 +44,7 @@ else
     {
         var numberOfMonsters = RandomNumberGenerator.GetInt32(1, 10);
 
-        _numberOfMonsters = numberOfMonsters.ToString();
+        _numberOfMonsters = numberOfMonsters.ToWords();
 
         var randomMonster = MonsterTableHelpers.GetRandom5eMonster();
         
