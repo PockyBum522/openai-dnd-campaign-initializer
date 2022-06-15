@@ -5,8 +5,9 @@
 @using OpenAiDndCampaignStarter.Data
 @using System.Text
 @using System.Net.Http.Headers
+@using OpenAiDndCampaignStarter.Data.Models
+@using Newtonsoft.Json
 @using Newtonsoft.Json.Linq
-@inject WeatherForecastService ForecastService
 
 <h1>Encounter Creator</h1>
 
@@ -22,31 +23,36 @@ else
     @_finalResponse</p>
 }
 
+<h1>Raw JSON Response</h1>
+
+@if (_jsonResponse == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <p>Encounter Area Description:<br>
+    @_jsonResponse</p>
+}
+
 @code {
-    private HttpClient _httpClient;
+    private HttpClient? _httpClient;
     private string? _jsonResponse;
-    private string? _json;
 
     private string? _finalResponse;
 
     protected override async Task OnInitializedAsync()
     {
-        var prompt = "Topic: Description. A description of an area in the middle of a journey";
+        var requestModel = new OpenAiJsonRequest("Topic: Description. A description of a landscape in the middle of a journey");
 
-        _json = @"{
-    ""model"": ""text-davinci-002"",
-    ""prompt"": """ + prompt + @""",
-    ""temperature"": 0.8,
-    ""max_tokens"": 240,
-    ""top_p"": 1.0,
-    ""frequency_penalty"": 0.5,
-    ""presence_penalty"": 0.0 
-}";
-
-    //Create the request sender object
+        var jsonRequest = JsonConvert.SerializeObject(requestModel);
+        
+        //Create the request sender object
         _httpClient ??= new HttpClient();
 
-        _jsonResponse = await PostHttpMessage("https://api.openai.com/v1/completions", _json);
+        _jsonResponse = await PostHttpMessage("https://api.openai.com/v1/completions", jsonRequest);
 
         var choicesZero = ((dynamic)JObject.Parse(_jsonResponse)["choices"][0]);
 
