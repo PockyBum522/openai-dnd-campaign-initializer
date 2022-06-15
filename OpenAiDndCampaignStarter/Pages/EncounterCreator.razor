@@ -5,13 +5,12 @@
 @using OpenAiDndCampaignStarter.Data
 @using System.Text
 @using System.Net.Http.Headers
+@using Newtonsoft.Json.Linq
 @inject WeatherForecastService ForecastService
 
 <h1>Encounter Creator</h1>
 
-<p>Encounter description:</p>
-
-@if (_response == null)
+@if (_finalResponse == null)
 {
     <p>
         <em>Loading...</em>
@@ -19,29 +18,47 @@
 }
 else
 {
-    <p>Encounter Area Description<br>
-    @_response</p>
+    <p>Encounter Area Description:<br>
+    @_finalResponse</p>
 }
 
 @code {
     private HttpClient _httpClient;
-    private string? _response;
+    private string? _jsonResponse;
+    private string? _json;
+
+    private string? _finalResponse;
 
     protected override async Task OnInitializedAsync()
     {
-        var prompt = "Topic: Description\nA long description of an area in the middle of a journey";
-        
-        //Create the request sender object
+        var prompt = "Topic: Description. A description of an area in the middle of a journey";
+
+        _json = @"{
+    ""model"": ""text-davinci-002"",
+    ""prompt"": """ + prompt + @""",
+    ""temperature"": 0.8,
+    ""max_tokens"": 240,
+    ""top_p"": 1.0,
+    ""frequency_penalty"": 0.5,
+    ""presence_penalty"": 0.0 
+}";
+
+    //Create the request sender object
         _httpClient ??= new HttpClient();
 
-        //Set the headers
-        _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd("MessageService/3.1");
+        _jsonResponse = await PostHttpMessage("https://api.openai.com/v1/completions", _json);
+
+        var choicesZero = ((dynamic)JObject.Parse(_jsonResponse)["choices"][0]);
+
+        _finalResponse = choicesZero.text.ToString();
     }
-    
-    public async Task<string> PostHttpMessage(string url, string jsonMessage)
+
+    private async Task<string> PostHttpMessage(string url, string jsonMessage)
     {
         _httpClient.DefaultRequestHeaders.Authorization = 
-            new AuthenticationHeaderValue("Bearer", "");
+            new AuthenticationHeaderValue("Bearer", Secrets.SECRET_API_KEY);
+        
+        _httpClient.Timeout = TimeSpan.FromSeconds(30);
         
         // Initialize the request content and Send the POST
         var response = await _httpClient.PostAsync(url, new StringContent(jsonMessage, Encoding.UTF8, "application/json"));
