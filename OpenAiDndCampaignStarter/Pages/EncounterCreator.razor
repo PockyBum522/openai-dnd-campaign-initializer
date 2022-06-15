@@ -91,15 +91,22 @@ else
 
         var encounterAreaTask = OpenAiRequestor.GetTextCompletionAsync(
             "Topic: Description. Please give me a description of an area in the middle of a journey.");
-
-        var encounterMonstersDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Description. Please give me a description of {_numberOfMonsters} {_monsterType} monsters.");
         
         var encounterMonstersLeaderDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
             $"Topic: Description. Please give me a description of the {_monsterType} leader.");
+        
+        if (numberOfMonsters > 1)
+        {
+            if (monsterTypePluralTask is not null)
+                _monsterTypePlural = await monsterTypePluralTask;
+        }
+        
+        var encounterMonstersDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
+            $"Topic: Description. Please give me a description of {_monsterTypePlural} monsters.");
+        
 
         var encounterProblemTask = OpenAiRequestor.GetTextCompletionAsync(
-            $"Topic: Medieval battle. Please give me a reason why a battle against {_monsterType} monsters might unexpectedly get more difficult.");
+            $"Topic: Medieval battle. Please give me a reason why a battle against {_monsterTypePlural} monsters might unexpectedly get more difficult.");
 
         _encounterProblem = await encounterProblemTask;
 
@@ -108,11 +115,5 @@ else
         _monstersDescription = await encounterMonstersDescriptionTask;
 
         _encounterAreaDescription = await encounterAreaTask;
-        
-        if (numberOfMonsters > 1)
-        {
-            if (monsterTypePluralTask is not null)
-                _monsterTypePlural = await monsterTypePluralTask;
-        }
     }
 }
