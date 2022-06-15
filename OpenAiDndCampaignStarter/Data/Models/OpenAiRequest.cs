@@ -5,9 +5,9 @@ using JetBrains.Annotations;
 namespace OpenAiDndCampaignStarter.Data.Models;
 
 [PublicAPI]
-public class OpenAiJsonRequest
+public class OpenAiRequest
 {
-    public OpenAiJsonRequest(string promptString)
+    public OpenAiRequest(string promptString)
     {
         prompt = promptString;
     }

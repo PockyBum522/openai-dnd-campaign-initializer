@@ -2,12 +2,10 @@
 
 <PageTitle>Encounter Creator</PageTitle>
 
-@using OpenAiDndCampaignStarter.Data
 @using System.Text
 @using System.Net.Http.Headers
 @using OpenAiDndCampaignStarter.Data.Models
 @using Newtonsoft.Json
-@using Newtonsoft.Json.Linq
 
 <h1>Encounter Creator</h1>
 
@@ -23,20 +21,6 @@ else
     @_finalResponse</p>
 }
 
-<h1>Raw JSON Response</h1>
-
-@if (_jsonResponse == null)
-{
-    <p>
-        <em>Loading...</em>
-    </p>
-}
-else
-{
-    <p>Encounter Area Description:<br>
-    @_jsonResponse</p>
-}
-
 @code {
     private HttpClient? _httpClient;
     private string? _jsonResponse;
@@ -45,7 +29,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var requestModel = new OpenAiJsonRequest("Topic: Description. A description of a landscape in the middle of a journey");
+        var requestModel = new OpenAiRequest("Topic: Description. A description of a landscape in the middle of a journey");
 
         var jsonRequest = JsonConvert.SerializeObject(requestModel);
         
@@ -54,9 +38,9 @@ else
 
         _jsonResponse = await PostHttpMessage("https://api.openai.com/v1/completions", jsonRequest);
 
-        var choicesZero = ((dynamic)JObject.Parse(_jsonResponse)["choices"][0]);
+        var responseObject = JsonConvert.DeserializeObject<OpenAiResponse>(_jsonResponse);
 
-        _finalResponse = choicesZero.text.ToString();
+        _finalResponse = responseObject?.choices[0].text;
     }
 
     private async Task<string> PostHttpMessage(string url, string jsonMessage)
