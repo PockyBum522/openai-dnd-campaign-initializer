@@ -3,10 +3,13 @@
 <PageTitle>Encounter Creator</PageTitle>
 
 @using OpenAiDndCampaignStarter.Data.Logic
+@using System.Security.Cryptography
+
+@inject IOpenAiRequestor OpenAiRequestor;
 
 <h1>Encounter Creator</h1>
 
-@if (_response == null)
+@if (_encounterAreaDescription == null)
 {
     <p>
         <em>Loading...</em>
@@ -15,18 +18,55 @@
 else
 {
     <p>Encounter Area Description:<br>
-    @_response</p>
+        @_encounterAreaDescription</p>
+    
+    <p>Visible Monsters:<br>
+        @_numberOfMonsters @_monsterType:
+        @_monstersDescription</p>
+    
+    <p>Their Leader:<br>
+        @_monstersLeaderDescription</p>
+        
+    <p>Potential Unexpected Problems:<br>
+        @_enounterProblem</p>
 }
 
 @code {
-    private string? _response;
+    private string? _encounterAreaDescription;
+    private string? _numberOfMonsters;
+    private string? _monsterType;
+    private string? _monstersDescription;
+    private string? _monstersLeaderDescription;
+    private string? _enounterProblem;
 
     protected override async Task OnInitializedAsync()
     {
-        var requestor = new OpenAiRequestor();
+        var numberOfMonsters = RandomNumberGenerator.GetInt32(1, 10);
 
-        _response = 
-            await requestor.GetTextCompletionAsync(
-    "Topic: Description. Please tell me a story about a bugbear monster.");
+        _numberOfMonsters = numberOfMonsters.ToString();
+
+        var randomMonster = MonsterTableHelpers.GetRandom5eMonster();
+        
+        _monsterType = randomMonster.CreatureName;
+        
+        var encounterAreaTask = OpenAiRequestor.GetTextCompletionAsync(
+            "Topic: Description. Please give me a description of an area in the middle of a journey.");
+
+        var encounterMonstersDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
+            $"Topic: Description. Please give me a description of a group of {_numberOfMonsters} {_monsterType} monsters.");
+        
+        var encounterMonstersLeaderDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
+            $"Topic: Description. Please give me a description of the leader of a group of {_monsterType} monsters.");
+
+        var encounterProblemTask = OpenAiRequestor.GetTextCompletionAsync(
+            $"Topic: Description. Please give me a random reason why a battle would suddenly get harder.");
+
+        _enounterProblem = await encounterProblemTask;
+
+        _monstersLeaderDescription = await encounterMonstersLeaderDescriptionTask;
+        
+        _monstersDescription = await encounterMonstersDescriptionTask;
+
+        _encounterAreaDescription = await encounterAreaTask;
     }
 }
