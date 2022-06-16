@@ -49,11 +49,11 @@ else
     <h3>Source Material:</h3>
     @if (_monsterTypePlural == null)
     {
-        <p>@_monsterType can be found on page @_monsterPage of @_sourceMaterial</p>
+        <p>@_monsterType can be found on page @_monsterPage of the @_sourceMaterial</p>
     }
     else
     {
-        <p>@_monsterTypePlural can be found on page @_monsterPage of @_sourceMaterial</p>
+        <p>@_monsterTypePlural can be found on page @_monsterPage of the @_sourceMaterial</p>
     }
 }
 
@@ -78,13 +78,8 @@ else
 
         _monsterType = randomMonster.CreatureName;
 
-        Task<string>? monsterTypePluralTask = null;
-        
-        if (numberOfMonsters > 1)
-        {
-            monsterTypePluralTask = OpenAiRequestor.GetTextCompletionAsync(
-                $"What is the plural form of \"{_monsterType}\"");
-        }
+        var monsterTypePluralTask = OpenAiRequestor.GetTextCompletionAsync(
+            $"Please answer with just the plural form of \"{_monsterType}\" and nothing other than that.");
         
         _monsterPage = randomMonster.SourcePageNumber.ToString();
         _sourceMaterial = randomMonster.SourceMaterial;
@@ -95,15 +90,10 @@ else
         var encounterMonstersLeaderDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
             $"Topic: Description. Please give me a description of the {_monsterType} leader.");
         
-        if (numberOfMonsters > 1)
-        {
-            if (monsterTypePluralTask is not null)
-                _monsterTypePlural = await monsterTypePluralTask;
-        }
-        
+        _monsterTypePlural = await monsterTypePluralTask;
+
         var encounterMonstersDescriptionTask = OpenAiRequestor.GetTextCompletionAsync(
             $"Topic: Description. Please give me a description of {_monsterTypePlural} monsters.");
-        
 
         var encounterProblemTask = OpenAiRequestor.GetTextCompletionAsync(
             $"Topic: Medieval battle. Please give me a reason why a battle against {_monsterTypePlural} monsters might unexpectedly get more difficult.");
