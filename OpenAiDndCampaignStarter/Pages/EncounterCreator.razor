@@ -23,7 +23,7 @@ else
         @_encounterAreaDescription
     </p>
     
-    @if (_monsterTypePlural == null)
+    @if (_numberOfMonstersInt == 1)
     {
         <h3>Visible Monster:</h3>
         <p>(@_numberOfMonsters?.FirstCharToUpper() @_monsterType)</p>
@@ -47,7 +47,7 @@ else
     </p>
     
     <h3>Source Material:</h3>
-    @if (_monsterTypePlural == null)
+    @if (_numberOfMonstersInt == 1)
     {
         <p>@_monsterType can be found on page @_monsterPage of the @_sourceMaterial</p>
     }
@@ -67,12 +67,13 @@ else
     private string? _encounterProblem;
     private string? _monsterPage;
     private string? _sourceMaterial;
+    private int? _numberOfMonstersInt;
 
     protected override async Task OnInitializedAsync()
     {
-        var numberOfMonsters = RandomNumberGenerator.GetInt32(1, 10);
+        _numberOfMonstersInt = RandomNumberGenerator.GetInt32(1, 10);
 
-        _numberOfMonsters = numberOfMonsters.ToWords();
+        _numberOfMonsters = _numberOfMonsters1.ToWords();
 
         var randomMonster = MonsterTableHelpers.GetRandom5eMonster();
 
