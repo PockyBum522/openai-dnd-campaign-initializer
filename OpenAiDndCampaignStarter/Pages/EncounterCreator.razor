@@ -73,7 +73,7 @@ else
     {
         _numberOfMonstersInt = RandomNumberGenerator.GetInt32(1, 10);
 
-        _numberOfMonsters = _numberOfMonsters1.ToWords();
+        _numberOfMonsters = _numberOfMonstersInt?.ToWords();
 
         var randomMonster = MonsterTableHelpers.GetRandom5eMonster();
 
